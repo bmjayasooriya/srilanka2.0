@@ -492,6 +492,81 @@
                 }
             }
         });
+
+        // --- Custom Audio Player Logic ---
+const audio = document.getElementById('main-audio');
+const playBtn = document.getElementById('audio-play-btn');
+const playIcon = document.getElementById('play-icon');
+const pauseIcon = document.getElementById('pause-icon');
+const progress = document.getElementById('audio-progress');
+const currentTimeEl = document.getElementById('audio-current-time');
+const durationEl = document.getElementById('audio-duration');
+const volume = document.getElementById('audio-volume');
+const speed = document.getElementById('audio-speed');
+
+// Toggle Play & Pause
+playBtn.addEventListener('click', () => {
+    if (audio.paused) {
+        audio.play().catch(error => console.log("Audio play blocked or failed:", error));
+        playIcon.classList.add('hidden');
+        pauseIcon.classList.remove('hidden');
+    } else {
+        audio.pause();
+        playIcon.classList.remove('hidden');
+        pauseIcon.classList.add('hidden');
+    }
+});
+
+// Format Seconds to MM:SS style
+function formatTime(seconds) {
+    if (isNaN(seconds) || seconds === Infinity) return '0:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs < 10? '0' : ''}${secs}`;
+}
+
+// Update duration display when metadata is ready
+audio.addEventListener('loadedmetadata', () => {
+    durationEl.textContent = formatTime(audio.duration);
+    progress.max = audio.duration;
+});
+
+// Sync progress slider and current time display
+audio.addEventListener('timeupdate', () => {
+    if (!progress.classList.contains('user-seeking')) {
+        progress.value = audio.currentTime;
+    }
+    currentTimeEl.textContent = formatTime(audio.currentTime);
+});
+
+// Let user seek inside the audio track
+progress.addEventListener('input', () => {
+    progress.classList.add('user-seeking');
+});
+
+progress.addEventListener('change', () => {
+    audio.currentTime = progress.value;
+    progress.classList.remove('user-seeking');
+});
+
+// Volume Control
+volume.addEventListener('input', () => {
+    audio.volume = volume.value / 100;
+});
+
+// Playback Speed Control
+speed.addEventListener('change', () => {
+    audio.playbackRate = parseFloat(speed.value);
+});
+
+// Reset UI on audio end
+audio.addEventListener('ended', () => {
+    playIcon.classList.remove('hidden');
+    pauseIcon.classList.add('hidden');
+    progress.value = 0;
+    currentTimeEl.textContent = '0:00';
+});
     </script>
+
 </body>
 </html>
